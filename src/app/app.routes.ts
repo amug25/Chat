@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginPage } from './auth/login-page/login-page';
-import { RegisterPage } from './auth/register-page/register-page';
+import { LoggedGuard } from './auth/guards/logged.guard';
 
 export const routes: Routes = [
   {
@@ -8,17 +8,19 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/home-page/home.page').then((m) => m.HomePage),
   },
-  // {
-  //   path: '',
-  //   redirectTo: 'home',
-  //   pathMatch: 'full',
-  // },
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full',
+  },
   {
     path: 'login',
     component: LoginPage,
+    canActivate: [LoggedGuard],
   },
+
   {
-    path: 'register',
-    component: RegisterPage,
+    path: 'chat',
+    loadChildren: () => import('./chat/chat.routes').then((m) => m.routes),
   },
 ];
