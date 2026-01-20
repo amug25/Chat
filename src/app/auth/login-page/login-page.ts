@@ -1,21 +1,13 @@
 import { Component, inject } from '@angular/core';
-import {
-  IonButton,
-  IonIcon,
-  IonHeader,
-  IonContent,
-  IonToolbar,
-  IonTitle,
-} from '@ionic/angular/standalone';
+import { IonButton, IonIcon, IonContent } from '@ionic/angular/standalone';
 import { AuthService } from '../services/auth.service';
-import { addIcons } from 'ionicons';
-import { logoGoogle } from 'ionicons/icons';
-import { Router } from '@angular/router';
 
-addIcons({ logoGoogle });
+import { Router } from '@angular/router';
+import { Header } from 'src/app/chat/components/header/header';
+
 @Component({
   selector: 'login-page',
-  imports: [IonTitle, IonToolbar, IonContent, IonHeader, IonIcon, IonButton],
+  imports: [IonContent, IonIcon, IonButton, Header],
   templateUrl: './login-page.html',
   styleUrls: ['./login.page.scss'],
 })
@@ -27,5 +19,6 @@ export class LoginPage {
     await this.authService.loginWithGoogle();
 
     await this.router.navigateByUrl('/chat');
+    console.log(this.authService.userData());
   }
 }

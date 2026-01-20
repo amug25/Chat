@@ -1,0 +1,14 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> {{title}} </ion-title>
+
+    @if (showRightButton){
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="rigthClick.emit()">
+        <ion-icon slot="icon-only" [name]="rightIcon"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>

@@ -1,5 +1,9 @@
-<p>chat-page works!</p>
+<app-header
+  title="Chat"
+  [showRightButton]="true"
+  rightIcon="log-out-outline"
+  (rigthClick)="onLogOut()"
+></app-header>
 
-<ion-button (click)="onLogOut()">
-  <span class="google-btn_txt" style="margin-top: 1px">Cerrar sesión</span>
-</ion-button>
+<h1>Como mola el chat</h1>
+<ion-button (click)="testMessage()">Mandar mensaje prueba</ion-button>

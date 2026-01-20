@@ -9,5 +9,7 @@ export const environment = {
     messagingSenderId: '316740396681',
     appId: '1:316740396681:web:52f073a9c5f10eaba10858',
     measurementId: 'G-8H9FB62LJ5',
+    databaseURL:
+      'https://chat-4c104-default-rtdb.europe-west1.firebasedatabase.app/',
   },
 };
