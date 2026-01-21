@@ -4,6 +4,9 @@
   rightIcon="log-out-outline"
   (rigthClick)="onLogOut()"
 ></app-header>
-
-<h1>Como mola el chat</h1>
-<ion-button (click)="testMessage()">Mandar mensaje prueba</ion-button>
+<ion-content [fullscreen]="true">
+  <app-messages></app-messages>
+</ion-content>
+<ion-footer>
+  <text-box />
+</ion-footer>

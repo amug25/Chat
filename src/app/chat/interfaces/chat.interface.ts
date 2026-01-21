@@ -9,7 +9,7 @@ export interface ChatUser {
 export interface ChatMessage {
   uid: string;
   text: string | null;
-  timestamp: object;
+  timestamp: number | object;
   profilePicUrl?: string | null;
   name: string;
 }
