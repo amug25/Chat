@@ -1,8 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { ChatTimestampPipe } from 'src/app/pipes/chat-timestamp.pipe';
+import { AuthService } from 'src/app/services/auth.service';
+import { MessagesService } from 'src/app/services/messages.service';
 
 @Component({
-  selector: 'app-messages',
-  imports: [],
+  selector: 'messages',
+  imports: [ChatTimestampPipe],
   templateUrl: './messages.html',
 })
-export class Messages { }
+export class Messages {
+  messagesService = inject(MessagesService);
+  authService = inject(AuthService);
+
+  constructor() {
+    this.messagesService.showMessages();
+  }
+
+  myUid = computed(() => this.authService.userData()?.uid ?? null);
+
+  isMe(uid: string) {
+    return uid === this.myUid();
+  }
+}

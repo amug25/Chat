@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonFooter, IonContent } from '@ionic/angular/standalone';
-import { AuthService } from 'src/app/auth/services/auth.service';
+import { AuthService } from 'src/app/services/auth.service';
 import { Header } from '../components/header/header';
-import { MessagesService } from 'src/app/auth/services/messages.service';
+import { MessagesService } from 'src/app/services/messages.service';
 import { TextBox } from '../components/text-box/text-box';
 import { Messages } from '../components/messages/messages';
 

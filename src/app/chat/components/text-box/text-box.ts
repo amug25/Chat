@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonFooter, IonToolbar, IonTitle } from '@ionic/angular/standalone';
-import { MessagesService } from 'src/app/auth/services/messages.service';
+import { MessagesService } from 'src/app/services/messages.service';
 
 @Component({
   selector: 'text-box',
@@ -18,7 +18,7 @@ export class TextBox {
 
   onSend() {
     if (this.messageControl.invalid) {
-      console.log('El mensaje solo puede tener un máximo de 500 caracteres');
+      console.log('El mensaje debe tener entre 1 y 500 caracteres');
 
       //TODO: Lanzar un mensaje visible de error.
     }

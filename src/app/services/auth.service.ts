@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 import { Auth, authState, GoogleAuthProvider } from '@angular/fire/auth';
-import { Database } from '@angular/fire/database';
 
 import { signInWithPopup, signOut, User } from 'firebase/auth';
 import { ChatUser } from 'src/app/chat/interfaces/chat.interface';
@@ -11,7 +10,7 @@ export class AuthService {
 
   chatUser = signal<ChatUser | null>(null);
 
-  constructor(private auth: Auth, private db: Database) {
+  constructor(private auth: Auth) {
     authState(this.auth).subscribe((user) => {
       this.userData.set(user || null);
 
@@ -24,8 +23,9 @@ export class AuthService {
               displayName: user.displayName ?? undefined,
               photoURL: user.photoURL ?? undefined,
               lastLogin: Date.now(),
+              //! Harbrá que hacer algo con el lastLogin
             }
-          : null
+          : null,
       );
     });
   }
@@ -38,7 +38,6 @@ export class AuthService {
   }
 
   async logOut(): Promise<void> {
-    console.log(this.chatUser());
     await signOut(this.auth);
     this.userData.set(null);
     this.chatUser.set(null);

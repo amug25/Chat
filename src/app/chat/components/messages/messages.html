@@ -1,1 +1,28 @@
-<p>messages works!</p>,
+@for(m of messagesService.messages(); track m.id){
+
+<div
+  class="chat"
+  [class.chat-end]="isMe(m.uid)"
+  [class.chat-start]="!isMe(m.uid)"
+>
+  <div class="chat-header">{{isMe(m.uid) ? 'Yo' : m.name}}</div>
+  <div
+    class="chat-bubble"
+    [class.chat-bubble-primary]="isMe(m.uid)"
+    [class.chat-bubble-accent]="!isMe(m.uid)"
+  >
+    {{m.text}}
+  </div>
+  <div class="chat-footer opacity-50">{{m.timestamp |chatTimestamp}}</div>
+</div>
+}
+
+<!-- <div class="chat chat-end">
+  <div class="chat-header">
+    Yo
+    <time class="text-xs opacity-50">{{m.timestamp |chatTimestamp}}</time>
+
+    <time class="text-xs opacity-50">TimeStamp</time>
+  </div>
+  <div class="chat-bubble">Mi mensaje</div>
+</div> -->
