@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IonFooter, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+import { IonToolbar } from '@ionic/angular/standalone';
 import { MessagesService } from 'src/app/services/messages.service';
 
 @Component({
   selector: 'text-box',
-  imports: [IonTitle, IonToolbar, IonFooter, ReactiveFormsModule],
+  imports: [IonToolbar, ReactiveFormsModule],
   templateUrl: './text-box.html',
 })
 export class TextBox {

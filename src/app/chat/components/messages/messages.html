@@ -1,3 +1,14 @@
+<ion-infinite-scroll
+  position="top"
+  threshold="1px"
+  (ionInfinite)="onIonInfinite($event)"
+>
+  <ion-infinite-scroll-content
+    loadingText="Cargando mensajes..."
+    loadingSpinner="bubbles"
+  ></ion-infinite-scroll-content>
+</ion-infinite-scroll>
+
 @for(m of messagesService.messages(); track m.id){
 
 <div
@@ -16,13 +27,3 @@
   <div class="chat-footer opacity-50">{{m.timestamp |chatTimestamp}}</div>
 </div>
 }
-
-<!-- <div class="chat chat-end">
-  <div class="chat-header">
-    Yo
-    <time class="text-xs opacity-50">{{m.timestamp |chatTimestamp}}</time>
-
-    <time class="text-xs opacity-50">TimeStamp</time>
-  </div>
-  <div class="chat-bubble">Mi mensaje</div>
-</div> -->

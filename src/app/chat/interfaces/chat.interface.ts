@@ -14,3 +14,7 @@ export interface ChatMessage {
   profilePicUrl?: string | null;
   name: string;
 }
+
+export interface InfiniteScrollCustomEvent extends CustomEvent {
+  target: HTMLIonInfiniteScrollElement;
+}
