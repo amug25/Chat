@@ -84,26 +84,41 @@ export class ChatPage implements AfterViewInit {
 
   async onIonInfinite($event: InfiniteScrollCustomEvent) {
     if (this.loadingOlder || this.noMoreMessages) {
+      console.log('Infinite cancelado: loading Older o noMoreMessages');
       $event.target.complete();
       return;
     }
     this.loadingOlder = true;
 
-    //Medimos el estado ANTES de prepender
+    //Medimos ANTES de prepender
     const scrollElement = await this.content.getScrollElement();
     const prevHeight = scrollElement.scrollHeight;
     const prevTop = scrollElement.scrollTop;
 
-    //Guardar longitud actual para inferir si cargamos algo
+    //Guardar longitud actual (medir diferencia)
     const prevCount = this.messagesService.messages().length;
+    const prevOldest = this.messagesService.oldestMessage();
 
-    //Cargamos más mensajes
+    console.log('----INFINITE START----');
+    console.log('PREVcOUNT: ', prevCount);
+    console.log('prevTop: ', prevTop);
+    console.log('prevHeigth: ', prevHeight);
+    console.log('prevOldest: ', prevOldest);
+
     await this.messagesService.loadMoreMessages();
 
-    //Comprobar si realmente llegaron más
+    //Llegaron más?
     const newCount = this.messagesService.messages().length;
+    const newOldest = this.messagesService.oldestMessage();
+
+    console.log('Después de loadMoreMessages -> newCount: ', newCount);
+    console.log('newOldest: ', newOldest);
     if (newCount <= prevCount) {
-      this.noMoreMessages = true; //no hay más
+      console.log('BAD newCount <=prevCount -> Marcando noMoreMessages = true');
+      //!Aquí está el problema de limitar a 20
+      this.noMoreMessages = true;
+    } else {
+      console.log('GOOD Han llegado más mensajes');
     }
 
     //Preservar posición: Compensar el crecimiento de altura
@@ -111,9 +126,15 @@ export class ChatPage implements AfterViewInit {
       const newHeight = scrollElement.scrollHeight;
       const difference = newHeight - prevHeight;
 
+      console.log('newHeight: ', newHeight);
+      console.log('diferencia añadida: ', difference);
+      console.log('nuevo scrollTop: ', prevTop + difference);
+
       scrollElement.scrollTop = prevTop + difference;
       this.loadingOlder = false;
       $event.target.complete();
+
+      console.log('Infinite END');
     });
   }
 }

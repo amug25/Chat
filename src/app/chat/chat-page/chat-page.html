@@ -5,6 +5,7 @@
   (rigthClick)="onLogOut()"
 ></app-header>
 <ion-content #content [fullscreen]="true">
+  <messages></messages>
   <ion-infinite-scroll
     position="top"
     threshold="80px"
@@ -16,8 +17,6 @@
       loadingSpinner="bubbles"
     ></ion-infinite-scroll-content>
   </ion-infinite-scroll>
-
-  <messages></messages>
 </ion-content>
 <ion-footer>
   <text-box />

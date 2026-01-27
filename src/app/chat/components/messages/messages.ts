@@ -37,13 +37,6 @@ export class Messages {
     return uid === this.myUid();
   }
 
-  async onIonInfinite($event: InfiniteScrollCustomEvent) {
-    console.log('Infinite trigger ', $event);
-
-    await this.messagesService.loadMoreMessages();
-    $event.target.complete();
-  }
-
   ngOnDestroy() {
     this.messagesService.stop();
   }

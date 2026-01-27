@@ -94,8 +94,12 @@ export class MessagesService {
 
   async loadMoreMessages() {
     const oldest = this.oldestMessage();
+    console.log('[service] oldest antes:', oldest);
 
-    if (oldest === null) return;
+    if (oldest === null) {
+      console.log('[service] oldest es null -> no se paginará');
+      return;
+    }
 
     const messagesRef = ref(this.db, 'messages');
     const q = query(
@@ -111,13 +115,29 @@ export class MessagesService {
       const data = child.val() as ChatMessage;
       older.push({ id, ...data });
     });
-    if (older.length === 0) return;
+    console.log('[service] older.length: ', older.length);
+    if (older.length === 0) {
+      console.log('[service] No llegaron mensajes antiguos');
+      return;
+    }
 
     const current = this.messages();
     const currentIds = new Set(current.map((msg) => msg.id));
     const olderWithoutDuplicates = older.filter(
       (msg) => !currentIds.has(msg.id),
     );
+
+    console.log(
+      '[service] olderWithputDuplicates.length: ',
+      olderWithoutDuplicates.length,
+    );
+
+    if (olderWithoutDuplicates.length === 0) {
+      console.log('[service] Todos eran duplicados');
+      return;
+    }
     this.messages.set([...olderWithoutDuplicates, ...current]);
+
+    console.log('[service] nuevo oldest: ', this.oldestMessage());
   }
 }
