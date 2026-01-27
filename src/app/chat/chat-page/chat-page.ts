@@ -1,7 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { AfterViewInit, Component, inject, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  IonButton,
   IonFooter,
   IonContent,
   IonInfiniteScrollContent,
@@ -19,7 +18,6 @@ import { InfiniteScrollCustomEvent } from '../interfaces/chat.interface';
   imports: [
     IonInfiniteScroll,
     IonInfiniteScrollContent,
-    IonButton,
     Header,
     TextBox,
     IonFooter,
@@ -34,9 +32,96 @@ export class ChatPage {
   private router = inject(Router);
   private messageService = inject(MessagesService);
 
-  async testMessage() {
-    const key = await this.messageService.addMessage('Soy un mensaje ');
-    console.log('Mensaje guardado con key');
+  @ViewChild('content', { static: true }) content!: IonContent;
+
+  lastScrollTop: number | null = null;
+  scrollDirection: 'up' | 'down' = 'down';
+
+  loadingMore = false;
+
+  async ionViewDidEnter() {
+    await this.messageService.loadLastMessages();
+    this.messageService.listenNewMessages();
+
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+
+    await this.content.scrollToBottom(0);
+
+    const elScroll = await this.content.getScrollElement();
+    this.lastScrollTop = elScroll.scrollTop;
+    this.scrollDirection = 'down';
+  }
+
+  onScroll(event: any) {
+    const sTop = event.detail?.scrollTop ?? 0;
+
+    if (this.lastScrollTop === null) {
+      this.lastScrollTop = sTop;
+      return;
+    }
+
+    this.scrollDirection = sTop < this.lastScrollTop ? 'up' : 'down';
+    this.lastScrollTop = sTop;
+  }
+
+  async onIonInfinite(event: InfiniteScrollCustomEvent) {
+    const scrollElement = await this.content.getScrollElement();
+    console.log('dir', this.scrollDirection, 'top', scrollElement.scrollTop);
+
+    if (this.loadingMore) {
+      event.target.complete();
+      return;
+    }
+    this.loadingMore = true;
+
+    if (scrollElement.scrollHeight <= scrollElement.clientHeight + 1) {
+      event.target.complete();
+      this.loadingMore = false;
+      return;
+    }
+
+    const NEAR_TOP_PX = 80;
+
+    if (this.scrollDirection !== 'up') {
+      event.target.complete();
+      this.loadingMore = false;
+      return;
+    }
+
+    if (scrollElement.scrollTop > NEAR_TOP_PX) {
+      event.target.complete();
+      this.loadingMore = false;
+      return;
+    }
+
+    const prevScrollHeight = scrollElement.scrollHeight;
+    const prevScrollTop = scrollElement.scrollTop;
+
+    const added = await this.messageService.loadMoreMessages();
+
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+
+    const newScrollHeight = scrollElement.scrollHeight;
+    const diferenceHeight = newScrollHeight - prevScrollHeight;
+
+    scrollElement.scrollTop = prevScrollTop + diferenceHeight;
+
+    this.lastScrollTop = scrollElement.scrollTop;
+    this.scrollDirection = 'up';
+
+    event.target.complete();
+
+    if (added === 0) {
+      event.target.disabled = true;
+    } else {
+      event.target.disabled = false;
+    }
+
+    this.loadingMore = false;
   }
 
   async onLogOut() {
@@ -45,11 +130,7 @@ export class ChatPage {
     await this.router.navigateByUrl('/login');
   }
 
-  onIonInfinite($event: InfiniteScrollCustomEvent) {
-    console.log('Infinite trigger ', $event);
-    this.messageService.loadMoreMessages();
-    setTimeout(() => {
-      $event.target.complete();
-    }, 500);
+  ngOnDestroy() {
+    this.messageService.stop();
   }
 }

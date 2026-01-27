@@ -1,14 +1,3 @@
-<ion-infinite-scroll
-  position="top"
-  threshold="1px"
-  (ionInfinite)="onIonInfinite($event)"
->
-  <ion-infinite-scroll-content
-    loadingText="Cargando mensajes..."
-    loadingSpinner="bubbles"
-  ></ion-infinite-scroll-content>
-</ion-infinite-scroll>
-
 @for(m of messagesService.messages(); track m.id){
 
 <div
