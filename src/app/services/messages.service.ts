@@ -92,13 +92,13 @@ export class MessagesService {
     this.unsub?.();
   }
 
-  async loadMoreMessages() {
+  async loadMoreMessages(): Promise<number> {
     const oldest = this.oldestMessage();
     console.log('[service] oldest antes:', oldest);
 
     if (oldest === null) {
       console.log('[service] oldest es null -> no se paginará');
-      return;
+      return 0;
     }
 
     const messagesRef = ref(this.db, 'messages');
@@ -120,7 +120,7 @@ export class MessagesService {
 
     if (older.length === 0) {
       console.log('[service] No llegaron mensajes antiguos');
-      return;
+      return 0;
     }
 
     const current = this.messages();

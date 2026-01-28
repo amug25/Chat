@@ -8,7 +8,7 @@
   <messages #messagesComp></messages>
   <ion-infinite-scroll
     position="top"
-    threshold="80px"
+    threshold="20px"
     [disabled]="!firstScrollDone || noMoreMessages"
     (ionInfinite)="onIonInfinite($event)"
   >

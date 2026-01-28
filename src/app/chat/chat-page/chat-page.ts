@@ -94,27 +94,38 @@ export class ChatPage implements AfterViewInit {
     //obtener scrollElement
     const scrollElement = await this.content.getScrollElement();
 
-    //Medir anchor ANTES de añadir
-    const anchorPrev = this.messagesComp.anchorRef;
+    //medir altura antes
 
-    const prevTop = anchorPrev?.nativeElement.getBoundingClientRect().top ?? 0;
-
-    const prevCount = this.messagesService.messages().length;
+    const prevScrollHeight = scrollElement.scrollHeight;
+    const prevScrollTop = scrollElement.scrollTop;
 
     //Cargar mensajes
     const added = await this.messagesService.loadMoreMessages();
 
+    //Si no hay más o es la última página desactivar EVENT
+    const PAGE_SIZE = 10;
+
+    if (added < PAGE_SIZE) {
+      this.noMoreMessages = true;
+      $event.target.disabled = true;
+      this.loadingOlder = false;
+      $event.target.complete();
+      return;
+    }
+
     //Esperar a pintar prepend
     await new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-    //Releer anchor después
-    const newAnchor = this.messagesComp.anchorRef;
+    //Ajuste altura
+    const newScrollHeight = scrollElement.scrollHeight;
+    const difference = newScrollHeight - prevScrollHeight;
 
-    const newTop = newAnchor?.nativeElement.getBoundingClientRect().top ?? 0;
+    //mantener punto de vista
+    scrollElement.scrollTop = prevScrollTop + difference;
 
-    const difference = newTop - prevTop;
+    //empujoncito para salir del treshold y evitar loop:
 
-    scrollElement.scrollTop += difference;
+    scrollElement.scrollTop += 1;
 
     //Decidir si no hay más mensajes
     if (added === 0) {
