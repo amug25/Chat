@@ -120,6 +120,7 @@ export class MessagesService {
 
     const snapshot = await get(q);
     const older: ChatMessage[] = [];
+    console.log('[service] snapshot exists=', snapshot.exists());
     snapshot.forEach((child) => {
       const id = child.key ?? '';
       const data = child.val() as ChatMessage;

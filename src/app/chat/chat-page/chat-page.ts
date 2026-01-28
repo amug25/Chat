@@ -51,6 +51,7 @@ export class ChatPage implements AfterViewInit {
   loadingOlder = false;
   noMoreMessages = false;
   firstScrollDone = false;
+  showInfinite = signal(true);
 
   //Para comprobar que la vista está cargada.
   private viewReady = signal(false);
@@ -66,15 +67,15 @@ export class ChatPage implements AfterViewInit {
     effect(() => {
       const count = this.messagesService.messages().length;
 
-      // Si el infinite estaba desactivado por haber llegado al inicio,
-      // lo reactivamos cuando haya cualquier actualización de mensajes (onValue)
       console.log('[rehabEffect] tick', {
         lastCount: this.lastCount,
         count,
         noMoreMessages: this.noMoreMessages,
         infiniteDisabled: this.infinite?.disabled,
       });
-      //Supresión de ionInfinite un instante para no disparar en el ajuste de cargar 10 últimos al enviar
+
+      // 1) Suprimir ionInfinite un instante cuando hay "reset" real a últimos 10
+      // (veníamos de tener más de 10 cargados)
       if (this.firstScrollDone && this.lastCount > 10 && count === 10) {
         this.suppressInfinite = true;
         requestAnimationFrame(() =>
@@ -82,26 +83,46 @@ export class ChatPage implements AfterViewInit {
         );
       }
 
+      // 2) Si el infinite estaba desactivado por haber llegado al mensaje 1, reactivarlo
       if (this.infinite?.disabled && count > 0) {
         console.log('[rehabEffect] infinite estaba disabled -> reactivando');
+
         this.noMoreMessages = false;
         this.loadingOlder = false;
         this.infinite.disabled = false;
 
-        //Suprimir ionInfinite durante reajuste
+        // Suprimir durante el reajuste inmediato
         this.suppressInfinite = true;
         requestAnimationFrame(() =>
           requestAnimationFrame(() => (this.suppressInfinite = false)),
         );
 
-        //Rearmar ionic tras re-habilitar (mandar mensaje)
-        requestAnimationFrame(async () => {
-          const scrollElement = await this.content.getScrollElement();
-          scrollElement.scrollTop += 1;
-          scrollElement.scrollTop -= 1;
+        console.log('[rehabEffect] re-enabled', {
+          infiniteDisabled: this.infinite?.disabled,
+          noMoreMessages: this.noMoreMessages,
+          count,
         });
       }
 
+      // 3) Rearmar Ionic tras el reset a últimos 10 (2 frames después)
+      if (
+        this.firstScrollDone &&
+        count === 10 &&
+        !this.noMoreMessages &&
+        this.infinite &&
+        !this.infinite.disabled
+      ) {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(async () => {
+            const el = await this.content.getScrollElement();
+            el.scrollTop += 1;
+            el.scrollTop -= 1;
+            console.log('[rehabEffect] micro-tick scroll to rearm');
+          }),
+        );
+      }
+
+      // 4) Guardar el count para comparar en el siguiente tick
       this.lastCount = count;
     });
 
@@ -184,6 +205,12 @@ export class ChatPage implements AfterViewInit {
       this.noMoreMessages = true;
       $event.target.disabled = true;
       this.infinite.disabled = true;
+      console.log('[ionInfinite] disabled set', {
+        eventTargetDisabled: $event.target.disabled,
+        infiniteDisabled: this.infinite?.disabled,
+        noMoreMessages: this.noMoreMessages,
+      });
+
       this.loadingOlder = false;
       $event.target.complete();
 
