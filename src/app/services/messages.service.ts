@@ -84,6 +84,10 @@ export class MessagesService {
         result.push({ id, ...data });
         return false;
       });
+      console.log(
+        '[service] loadLastMessages onValue -> result.length =',
+        result.length,
+      );
       this.messages.set(result);
     });
   }
@@ -94,7 +98,12 @@ export class MessagesService {
 
   async loadMoreMessages(): Promise<number> {
     const oldest = this.oldestMessage();
-    console.log('[service] oldest antes:', oldest);
+    console.log(
+      '[service] paging with oldest=',
+      oldest,
+      'currentCount:',
+      this.messages().length,
+    );
 
     if (oldest === null) {
       console.log('[service] oldest es null -> no se paginará');
