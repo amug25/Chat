@@ -108,6 +108,7 @@ export class MessagesService {
       endAt(oldest - 1),
       limitToLast(10),
     );
+
     const snapshot = await get(q);
     const older: ChatMessage[] = [];
     snapshot.forEach((child) => {
@@ -116,6 +117,7 @@ export class MessagesService {
       older.push({ id, ...data });
     });
     console.log('[service] older.length: ', older.length);
+
     if (older.length === 0) {
       console.log('[service] No llegaron mensajes antiguos');
       return;
@@ -134,10 +136,11 @@ export class MessagesService {
 
     if (olderWithoutDuplicates.length === 0) {
       console.log('[service] Todos eran duplicados');
-      return;
+      return 0;
     }
     this.messages.set([...olderWithoutDuplicates, ...current]);
 
     console.log('[service] nuevo oldest: ', this.oldestMessage());
+    return olderWithoutDuplicates.length;
   }
 }

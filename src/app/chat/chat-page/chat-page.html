@@ -5,11 +5,11 @@
   (rigthClick)="onLogOut()"
 ></app-header>
 <ion-content #content [fullscreen]="true">
-  <messages></messages>
+  <messages #messagesComp></messages>
   <ion-infinite-scroll
     position="top"
     threshold="80px"
-    [disabled]="!firstScrollDone || loadingOlder || noMoreMessages"
+    [disabled]="!firstScrollDone || noMoreMessages"
     (ionInfinite)="onIonInfinite($event)"
   >
     <ion-infinite-scroll-content

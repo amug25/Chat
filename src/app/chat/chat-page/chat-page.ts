@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   effect,
+  ElementRef,
   inject,
   signal,
   ViewChild,
@@ -26,7 +27,6 @@ import { InfiniteScrollCustomEvent } from '../interfaces/chat.interface';
   imports: [
     IonInfiniteScroll,
     IonInfiniteScrollContent,
-    IonButton,
     Header,
     TextBox,
     IonFooter,
@@ -38,6 +38,7 @@ import { InfiniteScrollCustomEvent } from '../interfaces/chat.interface';
 })
 export class ChatPage implements AfterViewInit {
   @ViewChild(IonContent) content!: IonContent;
+  @ViewChild('messagesComp') messagesComp!: Messages;
 
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -90,51 +91,37 @@ export class ChatPage implements AfterViewInit {
     }
     this.loadingOlder = true;
 
-    //Medimos ANTES de prepender
+    //obtener scrollElement
     const scrollElement = await this.content.getScrollElement();
-    const prevHeight = scrollElement.scrollHeight;
-    const prevTop = scrollElement.scrollTop;
 
-    //Guardar longitud actual (medir diferencia)
+    //Medir anchor ANTES de añadir
+    const anchorPrev = this.messagesComp.anchorRef;
+
+    const prevTop = anchorPrev?.nativeElement.getBoundingClientRect().top ?? 0;
+
     const prevCount = this.messagesService.messages().length;
-    const prevOldest = this.messagesService.oldestMessage();
 
-    console.log('----INFINITE START----');
-    console.log('PREVcOUNT: ', prevCount);
-    console.log('prevTop: ', prevTop);
-    console.log('prevHeigth: ', prevHeight);
-    console.log('prevOldest: ', prevOldest);
+    //Cargar mensajes
+    const added = await this.messagesService.loadMoreMessages();
 
-    await this.messagesService.loadMoreMessages();
+    //Esperar a pintar prepend
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-    //Llegaron más?
-    const newCount = this.messagesService.messages().length;
-    const newOldest = this.messagesService.oldestMessage();
+    //Releer anchor después
+    const newAnchor = this.messagesComp.anchorRef;
 
-    console.log('Después de loadMoreMessages -> newCount: ', newCount);
-    console.log('newOldest: ', newOldest);
-    if (newCount <= prevCount) {
-      console.log('BAD newCount <=prevCount -> Marcando noMoreMessages = true');
-      //!Aquí está el problema de limitar a 20
+    const newTop = newAnchor?.nativeElement.getBoundingClientRect().top ?? 0;
+
+    const difference = newTop - prevTop;
+
+    scrollElement.scrollTop += difference;
+
+    //Decidir si no hay más mensajes
+    if (added === 0) {
       this.noMoreMessages = true;
-    } else {
-      console.log('GOOD Han llegado más mensajes');
     }
 
-    //Preservar posición: Compensar el crecimiento de altura
-    requestAnimationFrame(() => {
-      const newHeight = scrollElement.scrollHeight;
-      const difference = newHeight - prevHeight;
-
-      console.log('newHeight: ', newHeight);
-      console.log('diferencia añadida: ', difference);
-      console.log('nuevo scrollTop: ', prevTop + difference);
-
-      scrollElement.scrollTop = prevTop + difference;
-      this.loadingOlder = false;
-      $event.target.complete();
-
-      console.log('Infinite END');
-    });
+    this.loadingOlder = false;
+    $event.target.complete();
   }
 }

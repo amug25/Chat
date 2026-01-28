@@ -1,6 +1,9 @@
 <div role="feed" class="space-y-2">
-  @for(m of messagesService.messages(); track m.id){
+  @for(m of messagesService.messages(); let i = $index; track m.id){ @if(i ===0)
+  {
 
+  <div #topAnchor></div>
+  }
   <div
     role="article"
     class="chat"
@@ -15,7 +18,7 @@
     >
       {{m.text}}
     </div>
-    <div class="chat-footer opacity-50">{{m.timestamp |chatTimestamp}}</div>
+    <div class="chat-footer opacity-50">{{m.timestamp | chatTimestamp}}</div>
   </div>
   }
 </div>
