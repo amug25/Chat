@@ -2,7 +2,6 @@ import {
   AfterViewInit,
   Component,
   effect,
-  ElementRef,
   inject,
   signal,
   ViewChild,
@@ -45,10 +44,9 @@ export class ChatPage implements AfterViewInit {
   private router = inject(Router);
   private messagesService = inject(MessagesService);
   private lastCount = 0;
-  private suppressInfinite = false;
+  private lastNewestId: string | null = null;
   private suppressUntil = 0;
 
-  //Estado UI
   loadingOlder = false;
   noMoreMessages = false;
   firstScrollDone = false;
@@ -61,50 +59,49 @@ export class ChatPage implements AfterViewInit {
     this.viewReady.set(true);
   }
 
-  //Reacciona cuando ya hay mensajes Y la vista está cargada, haciendo el primer scroll
   constructor() {
     //EFFECT 1 para rehabilitar infinite cuando LoadLastMessages() resetea a los últimos diez
 
     effect(() => {
-      const count = this.messagesService.messages().length;
+      const list = this.messagesService.messages();
+      const count = list.length;
+      const newestId = count ? (list[count - 1]?.id ?? null) : null;
 
-      console.log('[rehabEffect] tick', {
-        lastCount: this.lastCount,
-        count,
-        noMoreMessages: this.noMoreMessages,
-        infiniteDisabled: this.infinite?.disabled,
-      });
+      //aunque count siga en 10 bloquea triggers fantasmas. Para cuando mando mensajes seguidos
+      if (
+        this.firstScrollDone &&
+        !this.loadingOlder &&
+        newestId &&
+        newestId !== this.lastNewestId
+      ) {
+        this.suppressUntil = Date.now() + 700;
+      }
+      this.lastNewestId = newestId;
 
       //  Suprimir ionInfinite un instante cuando hay "reset" real a últimos 10 (veníamos de tener más de 10 cargados)
       if (this.firstScrollDone && this.lastCount > 10 && count === 10) {
         this.suppressUntil = Date.now() + 700;
-        console.log('[rehabEffect] suppressUntil set (reset to last 10)');
       }
 
       //  Si el infinite estaba desactivado por haber llegado al mensaje 1, reactivarlo
       if (this.infinite?.disabled && count > 0) {
-        console.log('[rehabEffect] infinite estaba disabled -> reactivando');
-
         this.noMoreMessages = false;
         this.loadingOlder = false;
 
-        // 1) Reiniciar el componente para limpiar estado interno
+        //Reiniciar el componente para limpiar estado interno
         this.showInfinite.set(false);
 
         requestAnimationFrame(() => {
           this.showInfinite.set(true);
 
-          // 2) Bloquear triggers durante el reflow/scroll que ocurre al resetear
+          // Bloquear triggers durante el reflow/scroll que ocurre al resetear
           this.suppressUntil = Date.now() + 700;
-          console.log('[rehabEffect] suppressUntil set (rearm from disabled)');
 
-          // 3) Asegurar que el NUEVO infinite queda habilitado
+          // Asegurar que el NUEVO infinite queda habilitado
           requestAnimationFrame(() => {
             if (this.infinite) this.infinite.disabled = false;
           });
         });
-
-        console.log('[rehabEffect] re-enabled (requested)');
       }
 
       // Rearmar Ionic tras el reset a últimos 10 (2 frames después)
@@ -120,7 +117,6 @@ export class ChatPage implements AfterViewInit {
             const el = await this.content.getScrollElement();
             el.scrollTop += 1;
             el.scrollTop -= 1;
-            console.log('[rehabEffect] micro-tick scroll to rearm');
           }),
         );
       }
@@ -142,7 +138,6 @@ export class ChatPage implements AfterViewInit {
 
       requestAnimationFrame(() => {
         this.suppressUntil = Date.now() + 700;
-        console.log('[init] supressUntil set (initial scroll)');
 
         this.content.scrollToBottom(0).then(() => {
           this.firstScrollDone = true;
@@ -158,16 +153,8 @@ export class ChatPage implements AfterViewInit {
   }
 
   async onIonInfinite($event: InfiniteScrollCustomEvent) {
-    console.log('[ionInfinite] fired', {
-      loadingOlder: this.loadingOlder,
-      noMoreMessages: this.noMoreMessages,
-      infiniteDisabled: this.infinite?.disabled,
-      eventTargetDisabled: $event.target.disabled,
-    });
-
     const now = Date.now();
     if (now < this.suppressUntil) {
-      console.log('[ionInfinite] SUPPRESSED (time window)');
       $event.target.complete();
       return;
     }
@@ -181,43 +168,18 @@ export class ChatPage implements AfterViewInit {
 
     const scrollElement = await this.content.getScrollElement();
 
-    console.log('[ionInfinite] scroll metrics', {
-      scrollTop: scrollElement.scrollTop,
-      scrollHeight: scrollElement.scrollHeight,
-      clientHeight: scrollElement.clientHeight,
-    });
-
     const prevScrollHeight = scrollElement.scrollHeight;
     const prevScrollTop = scrollElement.scrollTop;
 
     const added = await this.messagesService.loadMoreMessages();
-    console.log('[ionInfinite] loadMoreMessages result', { added });
 
     if (added === 0) {
-      console.log('[ionInfinite] END-OF-LIST BEFORE', {
-        noMoreMessages: this.noMoreMessages,
-        infiniteDisabled: this.infinite?.disabled,
-        eventTargetDisabled: $event.target.disabled,
-      });
-
       this.noMoreMessages = true;
       $event.target.disabled = true;
       this.infinite.disabled = true;
 
-      console.log('[ionInfinite] disabled set', {
-        eventTargetDisabled: $event.target.disabled,
-        infiniteDisabled: this.infinite?.disabled,
-        noMoreMessages: this.noMoreMessages,
-      });
-
       this.loadingOlder = false;
       $event.target.complete();
-
-      console.log('[ionInfinite] END-OF-LIST AFTER', {
-        noMoreMessages: this.noMoreMessages,
-        infiniteDisabled: this.infinite?.disabled,
-        eventTargetDisabled: $event.target.disabled,
-      });
 
       return;
     }
