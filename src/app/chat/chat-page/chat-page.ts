@@ -46,6 +46,7 @@ export class ChatPage implements AfterViewInit {
   private messagesService = inject(MessagesService);
   private lastCount = 0;
   private suppressInfinite = false;
+  private suppressUntil = 0;
 
   //Estado UI
   loadingOlder = false;
@@ -62,7 +63,7 @@ export class ChatPage implements AfterViewInit {
 
   //Reacciona cuando ya hay mensajes Y la vista está cargada, haciendo el primer scroll
   constructor() {
-    //effect 1 para rehabilitar infinite cuando LoadLastMessages() resetea a los últimos diez
+    //EFFECT 1 para rehabilitar infinite cuando LoadLastMessages() resetea a los últimos diez
 
     effect(() => {
       const count = this.messagesService.messages().length;
@@ -74,37 +75,39 @@ export class ChatPage implements AfterViewInit {
         infiniteDisabled: this.infinite?.disabled,
       });
 
-      // 1) Suprimir ionInfinite un instante cuando hay "reset" real a últimos 10
-      // (veníamos de tener más de 10 cargados)
+      //  Suprimir ionInfinite un instante cuando hay "reset" real a últimos 10 (veníamos de tener más de 10 cargados)
       if (this.firstScrollDone && this.lastCount > 10 && count === 10) {
-        this.suppressInfinite = true;
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => (this.suppressInfinite = false)),
-        );
+        this.suppressUntil = Date.now() + 700;
+        console.log('[rehabEffect] suppressUntil set (reset to last 10)');
       }
 
-      // 2) Si el infinite estaba desactivado por haber llegado al mensaje 1, reactivarlo
+      //  Si el infinite estaba desactivado por haber llegado al mensaje 1, reactivarlo
       if (this.infinite?.disabled && count > 0) {
         console.log('[rehabEffect] infinite estaba disabled -> reactivando');
 
         this.noMoreMessages = false;
         this.loadingOlder = false;
-        this.infinite.disabled = false;
 
-        // Suprimir durante el reajuste inmediato
-        this.suppressInfinite = true;
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => (this.suppressInfinite = false)),
-        );
+        // 1) Reiniciar el componente para limpiar estado interno
+        this.showInfinite.set(false);
 
-        console.log('[rehabEffect] re-enabled', {
-          infiniteDisabled: this.infinite?.disabled,
-          noMoreMessages: this.noMoreMessages,
-          count,
+        requestAnimationFrame(() => {
+          this.showInfinite.set(true);
+
+          // 2) Bloquear triggers durante el reflow/scroll que ocurre al resetear
+          this.suppressUntil = Date.now() + 700;
+          console.log('[rehabEffect] suppressUntil set (rearm from disabled)');
+
+          // 3) Asegurar que el NUEVO infinite queda habilitado
+          requestAnimationFrame(() => {
+            if (this.infinite) this.infinite.disabled = false;
+          });
         });
+
+        console.log('[rehabEffect] re-enabled (requested)');
       }
 
-      // 3) Rearmar Ionic tras el reset a últimos 10 (2 frames después)
+      // Rearmar Ionic tras el reset a últimos 10 (2 frames después)
       if (
         this.firstScrollDone &&
         count === 10 &&
@@ -122,11 +125,11 @@ export class ChatPage implements AfterViewInit {
         );
       }
 
-      // 4) Guardar el count para comparar en el siguiente tick
+      //  Guardar el count para comparar en el siguiente tick
       this.lastCount = count;
     });
 
-    //effect 2 para hacer scroll al bottom cuando ya hay mensajes y la vista está lista
+    //EFFECT 2 para hacer scroll al bottom cuando ya hay mensajes y la vista está lista
     effect(() => {
       const messages = this.messagesService.messages();
       const hasMessages = messages.length > 0;
@@ -138,13 +141,11 @@ export class ChatPage implements AfterViewInit {
       //Esperamos al siguiente frame para asegurar que el DOM ya tiene la altura real.
 
       requestAnimationFrame(() => {
-        this.suppressInfinite = true;
+        this.suppressUntil = Date.now() + 700;
+        console.log('[init] supressUntil set (initial scroll)');
+
         this.content.scrollToBottom(0).then(() => {
           this.firstScrollDone = true;
-          // en el siguiente frame volvemos a permitir infinite
-          requestAnimationFrame(() => {
-            this.suppressInfinite = false;
-          });
         });
       });
     });
@@ -164,8 +165,9 @@ export class ChatPage implements AfterViewInit {
       eventTargetDisabled: $event.target.disabled,
     });
 
-    if (this.suppressInfinite) {
-      console.log('[ionInfinite] SUPRESSED (scroll programático)');
+    const now = Date.now();
+    if (now < this.suppressUntil) {
+      console.log('[ionInfinite] SUPPRESSED (time window)');
       $event.target.complete();
       return;
     }
@@ -174,26 +176,22 @@ export class ChatPage implements AfterViewInit {
       $event.target.complete();
       return;
     }
+
     this.loadingOlder = true;
 
-    //obtener scrollElement
     const scrollElement = await this.content.getScrollElement();
+
     console.log('[ionInfinite] scroll metrics', {
       scrollTop: scrollElement.scrollTop,
-      scrollHeigth: scrollElement.scrollHeight,
-      clientHeigth: scrollElement.clientHeight,
+      scrollHeight: scrollElement.scrollHeight,
+      clientHeight: scrollElement.clientHeight,
     });
-
-    //medir altura antes
 
     const prevScrollHeight = scrollElement.scrollHeight;
     const prevScrollTop = scrollElement.scrollTop;
 
-    //Cargar mensajes
     const added = await this.messagesService.loadMoreMessages();
     console.log('[ionInfinite] loadMoreMessages result', { added });
-
-    //Si no hay más o es la última página desactivar EVENT
 
     if (added === 0) {
       console.log('[ionInfinite] END-OF-LIST BEFORE', {
@@ -205,6 +203,7 @@ export class ChatPage implements AfterViewInit {
       this.noMoreMessages = true;
       $event.target.disabled = true;
       this.infinite.disabled = true;
+
       console.log('[ionInfinite] disabled set', {
         eventTargetDisabled: $event.target.disabled,
         infiniteDisabled: this.infinite?.disabled,
@@ -223,18 +222,12 @@ export class ChatPage implements AfterViewInit {
       return;
     }
 
-    //Esperar a pintar prepend
     await new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-    //Ajuste altura
     const newScrollHeight = scrollElement.scrollHeight;
     const difference = newScrollHeight - prevScrollHeight;
 
-    //mantener punto de vista
     scrollElement.scrollTop = prevScrollTop + difference;
-
-    //empujoncito para salir del treshold y evitar loop:
-
     scrollElement.scrollTop += 1;
 
     this.loadingOlder = false;

@@ -6,6 +6,9 @@
 ></app-header>
 <ion-content #content [fullscreen]="true">
   <messages #messagesComp></messages>
+
+  @if(showInfinite()){
+
   <ion-infinite-scroll
     position="top"
     threshold="20px"
@@ -17,6 +20,7 @@
       loadingSpinner="bubbles"
     ></ion-infinite-scroll-content>
   </ion-infinite-scroll>
+  }
 </ion-content>
 <ion-footer>
   <text-box />
