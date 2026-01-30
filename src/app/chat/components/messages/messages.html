@@ -18,14 +18,23 @@
     >
       {{m.text}}
     </div>
-    <div class="chat-footer opacity-50"></div>
-    @if(m.location){
+    <div class="chat-footer opacity-50 items-center gap-2"></div>
     <div class="chat-footer opacity-50">
       <span>{{m.timestamp | chatTimestamp}}</span>
-      <span>-</span>
-      <span>{{m.location.lat.toFixed(5)}}, {{m.location.lng.toFixed(5)}}</span>
+      @if(m.location){
+      <span>|</span>
+      <span
+        >{{m.location.lat.toFixed(5)}}, {{m.location.lng.toFixed(5)}}
+        <span>|</span>
+        <a
+          target="_blank"
+          [href]="'https://www.google.com/maps?q=' + m.location.lat +','+ m.location.lng"
+        >
+          Ubicación</a
+        >
+      </span>
+      }
     </div>
-    }
   </div>
   }
 </div>
