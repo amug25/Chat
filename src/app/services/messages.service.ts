@@ -12,11 +12,13 @@ import {
 import { ChatMessage } from 'src/app/chat/interfaces/chat.interface';
 import { AuthService } from './auth.service';
 import { orderByChild, query } from 'firebase/database';
+import { LocationService } from './location.service';
 
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
   private authService = inject(AuthService);
   private db = inject(Database);
+  private locationService = inject(LocationService);
 
   private unsub?: () => void;
 
@@ -47,29 +49,21 @@ export class MessagesService {
       console.log('addMessage requiere un usuario logueado');
       return null;
     }
-
+    const location = await this.locationService.getCurrentLocation();
+    console.log('[addMessage] location= ', location);
     const message: ChatMessage = {
       uid: user.uid,
       text: textMessage?.trim() ?? '',
       timestamp: serverTimestamp(),
       name: user.displayName ?? 'Anónimo',
       profilePicUrl: user.photoURL ?? null,
+      location: location,
     };
 
     const newRef = await push(ref(this.db, 'messages'), message);
     console.log('Mensaje guardado en db, referencia: ', newRef.key);
     return newRef.key;
   }
-
-  // async showMessages() {
-  //   const messagesRef = ref(this.db, 'messages');
-  //   onChildAdded(messagesRef, (snapshot: DataSnapshot) => {
-  //     const id = snapshot.key ?? '';
-
-  //     const data = snapshot.val();
-  //     this.messages.update((current) => [...current, { id, ...data }]);
-  //   });
-  // }
 
   loadLastMessages() {
     this.unsub?.();
@@ -84,10 +78,7 @@ export class MessagesService {
         result.push({ id, ...data });
         return false;
       });
-      console.log(
-        '[service] loadLastMessages onValue -> result.length =',
-        result.length,
-      );
+
       this.messages.set(result);
     });
   }
@@ -98,12 +89,6 @@ export class MessagesService {
 
   async loadMoreMessages(): Promise<number> {
     const oldest = this.oldestMessage();
-    console.log(
-      '[service] paging with oldest=',
-      oldest,
-      'currentCount:',
-      this.messages().length,
-    );
 
     if (oldest === null) {
       console.log('[service] oldest es null -> no se paginará');
@@ -120,16 +105,13 @@ export class MessagesService {
 
     const snapshot = await get(q);
     const older: ChatMessage[] = [];
-    console.log('[service] snapshot exists=', snapshot.exists());
     snapshot.forEach((child) => {
       const id = child.key ?? '';
       const data = child.val() as ChatMessage;
       older.push({ id, ...data });
     });
-    console.log('[service] older.length: ', older.length);
 
     if (older.length === 0) {
-      console.log('[service] No llegaron mensajes antiguos');
       return 0;
     }
 
@@ -139,18 +121,11 @@ export class MessagesService {
       (msg) => !currentIds.has(msg.id),
     );
 
-    console.log(
-      '[service] olderWithputDuplicates.length: ',
-      olderWithoutDuplicates.length,
-    );
-
     if (olderWithoutDuplicates.length === 0) {
-      console.log('[service] Todos eran duplicados');
       return 0;
     }
     this.messages.set([...olderWithoutDuplicates, ...current]);
 
-    console.log('[service] nuevo oldest: ', this.oldestMessage());
     return olderWithoutDuplicates.length;
   }
 }

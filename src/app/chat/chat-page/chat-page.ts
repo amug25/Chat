@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  IonButton,
   IonFooter,
   IonContent,
   IonInfiniteScrollContent,
@@ -50,9 +49,8 @@ export class ChatPage implements AfterViewInit {
   loadingOlder = false;
   noMoreMessages = false;
   firstScrollDone = false;
-  showInfinite = signal(true);
 
-  //Para comprobar que la vista está cargada.
+  showInfinite = signal(true);
   private viewReady = signal(false);
 
   ngAfterViewInit() {
@@ -78,7 +76,6 @@ export class ChatPage implements AfterViewInit {
       }
       this.lastNewestId = newestId;
 
-      //  Suprimir ionInfinite un instante cuando hay "reset" real a últimos 10 (veníamos de tener más de 10 cargados)
       if (this.firstScrollDone && this.lastCount > 10 && count === 10) {
         this.suppressUntil = Date.now() + 700;
       }
@@ -88,23 +85,19 @@ export class ChatPage implements AfterViewInit {
         this.noMoreMessages = false;
         this.loadingOlder = false;
 
-        //Reiniciar el componente para limpiar estado interno
         this.showInfinite.set(false);
 
         requestAnimationFrame(() => {
           this.showInfinite.set(true);
 
-          // Bloquear triggers durante el reflow/scroll que ocurre al resetear
           this.suppressUntil = Date.now() + 700;
 
-          // Asegurar que el NUEVO infinite queda habilitado
           requestAnimationFrame(() => {
             if (this.infinite) this.infinite.disabled = false;
           });
         });
       }
 
-      // Rearmar Ionic tras el reset a últimos 10 (2 frames después)
       if (
         this.firstScrollDone &&
         count === 10 &&
@@ -121,7 +114,6 @@ export class ChatPage implements AfterViewInit {
         );
       }
 
-      //  Guardar el count para comparar en el siguiente tick
       this.lastCount = count;
     });
 
@@ -133,8 +125,6 @@ export class ChatPage implements AfterViewInit {
       if (!hasMessages) return;
       if (!this.viewReady()) return;
       if (this.firstScrollDone) return;
-
-      //Esperamos al siguiente frame para asegurar que el DOM ya tiene la altura real.
 
       requestAnimationFrame(() => {
         this.suppressUntil = Date.now() + 700;

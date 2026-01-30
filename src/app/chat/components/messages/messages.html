@@ -18,7 +18,14 @@
     >
       {{m.text}}
     </div>
-    <div class="chat-footer opacity-50">{{m.timestamp | chatTimestamp}}</div>
+    <div class="chat-footer opacity-50"></div>
+    @if(m.location){
+    <div class="chat-footer opacity-50">
+      <span>{{m.timestamp | chatTimestamp}}</span>
+      <span>-</span>
+      <span>{{m.location.lat.toFixed(5)}}, {{m.location.lng.toFixed(5)}}</span>
+    </div>
+    }
   </div>
   }
 </div>

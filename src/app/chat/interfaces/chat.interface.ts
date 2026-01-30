@@ -13,6 +13,12 @@ export interface ChatMessage {
   timestamp: number | object;
   profilePicUrl?: string | null;
   name: string;
+
+  location?: {
+    lat: number;
+    lng: number;
+    accuracy?: number | undefined;
+  } | null;
 }
 
 export interface InfiniteScrollCustomEvent extends CustomEvent {
