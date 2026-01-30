@@ -8,6 +8,7 @@ import {
   push,
   ref,
   serverTimestamp,
+  update,
 } from '@angular/fire/database';
 import { ChatMessage } from 'src/app/chat/interfaces/chat.interface';
 import { AuthService } from './auth.service';
@@ -49,19 +50,26 @@ export class MessagesService {
       console.log('addMessage requiere un usuario logueado');
       return null;
     }
-    const location = await this.locationService.getCurrentLocation();
-    console.log('[addMessage] location= ', location);
+
     const message: ChatMessage = {
       uid: user.uid,
       text: textMessage?.trim() ?? '',
       timestamp: serverTimestamp(),
       name: user.displayName ?? 'Anónimo',
       profilePicUrl: user.photoURL ?? null,
-      location: location,
     };
 
     const newRef = await push(ref(this.db, 'messages'), message);
     console.log('Mensaje guardado en db, referencia: ', newRef.key);
+
+    if (newRef.key) {
+      this.locationService.getCurrentLocation().then((location) => {
+        if (!location) return;
+        update(ref(this.db, `messages/${newRef.key}`), { location: location });
+      });
+      console.log('[addMessage] location= ', location);
+    }
+
     return newRef.key;
   }
 

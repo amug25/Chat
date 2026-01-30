@@ -17,7 +17,7 @@ export class LocationService {
       const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 9000,
-        maximumAge: 0,
+        maximumAge: 60000,
       });
       const location: MessageLocation = {
         lat: position.coords.latitude,
