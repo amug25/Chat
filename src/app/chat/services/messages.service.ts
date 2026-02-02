@@ -11,7 +11,7 @@ import {
   update,
 } from '@angular/fire/database';
 import { ChatMessage } from 'src/app/chat/interfaces/chat.interface';
-import { AuthService } from './auth.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { orderByChild, query } from 'firebase/database';
 import { LocationService } from './location.service';
 

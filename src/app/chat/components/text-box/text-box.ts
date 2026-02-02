@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonToolbar } from '@ionic/angular/standalone';
-import { MessagesService } from 'src/app/services/messages.service';
+import { MessagesService } from 'src/app/chat/services/messages.service';
 
 @Component({
   selector: 'text-box',

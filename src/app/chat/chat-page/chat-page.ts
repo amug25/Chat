@@ -13,9 +13,9 @@ import {
   IonInfiniteScrollContent,
   IonInfiniteScroll,
 } from '@ionic/angular/standalone';
-import { AuthService } from 'src/app/services/auth.service';
+import { AuthService } from 'src/app/auth/services/auth.service';
 import { Header } from '../components/header/header';
-import { MessagesService } from 'src/app/services/messages.service';
+import { MessagesService } from 'src/app/chat/services/messages.service';
 import { TextBox } from '../components/text-box/text-box';
 import { Messages } from '../components/messages/messages';
 import { InfiniteScrollCustomEvent } from '../interfaces/chat.interface';
@@ -49,6 +49,7 @@ export class ChatPage implements AfterViewInit {
   loadingOlder = false;
   noMoreMessages = false;
   firstScrollDone = false;
+  headerTitle = 'Chat'
 
   showInfinite = signal(true);
   private viewReady = signal(false);

@@ -1,11 +1,11 @@
 <app-header
-  title="Chat"
+  [title]="headerTitle"
   [showRightButton]="true"
   rightIcon="log-out-outline"
   (rigthClick)="onLogOut()"
 ></app-header>
 <ion-content #content [fullscreen]="true">
-  <messages #messagesComp></messages>
+  <messages #messagesComp (titleChange)="headerTitle = $event"></messages>
 
   @if(showInfinite()){
 
