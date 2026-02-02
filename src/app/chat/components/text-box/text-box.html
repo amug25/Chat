@@ -27,5 +27,6 @@
         />
       </svg>
     </button>
+  <ion-toast [isOpen]="showToast" [message]="toastMessage" [duration]="1000" position="bottom" (didDismiss)="showToast =false" />
   </div>
 </ion-toolbar>
