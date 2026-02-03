@@ -26,7 +26,7 @@ export class TextBox {
 
   async onSend() {
     if (this.messageControl.value.trim() === '') {
-      this.openToast('No puedes mandar un mensaje vacío.');
+      this.openToast('No puedes mandar un mensaje sin texto');
       this.messageControl.reset('');
       return;
     }

@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
-import { Capacitor } from '@capacitor/core';
 
 export type MessageLocation = {
   lat: number;
@@ -26,6 +25,7 @@ export class LocationService {
       };
       return location;
     } catch (e) {
+      console.log(e);
       return null;
     }
   }
