@@ -23,7 +23,6 @@ export class AuthService {
               displayName: user.displayName ?? undefined,
               photoURL: user.photoURL ?? undefined,
               lastLogin: Date.now(),
-              //! Harbrá que hacer algo con el lastLogin
             }
           : null,
       );

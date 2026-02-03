@@ -36,7 +36,6 @@ import { InfiniteScrollCustomEvent } from '../interfaces/chat.interface';
 })
 export class ChatPage implements AfterViewInit {
   @ViewChild(IonContent) content!: IonContent;
-  @ViewChild('messagesComp') messagesComp!: Messages;
   @ViewChild(IonInfiniteScroll) infinite!: IonInfiniteScroll;
 
   private authService = inject(AuthService);
@@ -67,13 +66,13 @@ export class ChatPage implements AfterViewInit {
       const count = list.length;
       const newestId = count ? (list[count - 1]?.id ?? null) : null;
 
-      //aunque count siga en 10 bloquea triggers fantasmas. Para cuando mando mensajes seguidos
       if (
         this.firstScrollDone &&
         !this.loadingOlder &&
         newestId &&
         newestId !== this.lastNewestId
       ) {
+        //aunque count siga en 10 bloquea triggers fantasmas. Para cuando mando mensajes seguidos
         this.suppressUntil = Date.now() + 700;
       }
       this.lastNewestId = newestId;
@@ -109,9 +108,9 @@ export class ChatPage implements AfterViewInit {
       ) {
         requestAnimationFrame(() =>
           requestAnimationFrame(async () => {
-            const el = await this.content.getScrollElement();
-            el.scrollTop += 1;
-            el.scrollTop -= 1;
+            const element = await this.content.getScrollElement();
+            element.scrollTop += 1;
+            element.scrollTop -= 1;
           }),
         );
       }
