@@ -1,11 +1,16 @@
 <app-header
   [title]="headerTitle"
+  [avatarUrl]="headerAvatarUrl"
   [showRightButton]="true"
   rightIcon="log-out-outline"
   (rigthClick)="onLogOut()"
 ></app-header>
 <ion-content #content [fullscreen]="true">
-  <messages #messagesComp (titleChange)="headerTitle = $event"></messages>
+  <messages
+    #messagesComp
+    (titleChange)="headerTitle = $event"
+    (avatarChange)="headerAvatarUrl = $event"
+  ></messages>
 
   @if(showInfinite()){
 

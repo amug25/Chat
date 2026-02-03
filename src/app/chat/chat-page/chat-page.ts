@@ -49,7 +49,8 @@ export class ChatPage implements AfterViewInit {
   loadingOlder = false;
   noMoreMessages = false;
   firstScrollDone = false;
-  headerTitle = 'Chat'
+  headerTitle = 'Chat';
+  headerAvatarUrl: string | null = null;
 
   showInfinite = signal(true);
   private viewReady = signal(false);

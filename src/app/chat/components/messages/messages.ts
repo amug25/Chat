@@ -20,13 +20,19 @@ import { MessagesService } from 'src/app/chat/services/messages.service';
 })
 export class Messages {
   @Output() titleChange = new EventEmitter<string>();
+  @Output() avatarChange = new EventEmitter<string | null>();
   @ViewChild('topAnchor', { read: ElementRef }) topAnchor!: ElementRef;
 
-  constructor(){
-    effect(()=>{
+  constructor() {
+    effect(() => {
       const name = this.otherUserName();
-      this.titleChange.emit(name ? `Chat: ${name}`: 'Chat');
-    })
+      this.titleChange.emit(name ? `${name}` : 'Chat');
+    });
+
+    effect(() => {
+      const avatar = this.otherUserAvatar();
+      this.avatarChange.emit(avatar);
+    });
   }
 
   get anchorRef(): ElementRef | null {
@@ -41,18 +47,25 @@ export class Messages {
 
   myUid = computed(() => this.authService.userData()?.uid ?? null);
 
-  otherUserName = computed(()=>{
+  otherUserName = computed(() => {
     const list = this.messagesService.messages();
     const mine = this.myUid();
 
-    const other = list.find((msg)=> msg.uid !== mine && !!msg.name)
+    const other = list.find((msg) => msg.uid !== mine && !!msg.name);
     return other?.name ?? '...';
-  })
+  });
+
+  otherUserAvatar = computed(() => {
+    const list = this.messagesService.messages();
+    const mine = this.myUid();
+
+    const other = list.find((msg) => msg.uid !== mine && !!msg.profilePicUrl);
+    return other?.profilePicUrl ?? null;
+  });
 
   isMe(uid: string) {
     return uid === this.myUid();
   }
-
 
   ngOnDestroy() {
     this.messagesService.stop();

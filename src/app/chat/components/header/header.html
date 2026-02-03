@@ -1,5 +1,12 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
+    @if(avatarUrl){
+    <ion-buttons slot="start">
+      <ion-avatar class="chat-avatar">
+        <ion-img [src]="avatarUrl" alt="avatar" />
+      </ion-avatar>
+    </ion-buttons>
+    }
     <ion-title> {{title}} </ion-title>
 
     @if (showRightButton){
