@@ -99,7 +99,6 @@ export class MessagesService {
     const oldest = this.oldestMessage();
 
     if (oldest === null) {
-      console.log('[service] oldest es null -> no se paginará');
       return 0;
     }
 

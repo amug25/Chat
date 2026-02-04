@@ -72,7 +72,6 @@ export class ChatPage implements AfterViewInit {
         newestId &&
         newestId !== this.lastNewestId
       ) {
-        //aunque count siga en 10 bloquea triggers fantasmas. Para cuando mando mensajes seguidos
         this.suppressUntil = Date.now() + 700;
       }
       this.lastNewestId = newestId;
